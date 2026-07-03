@@ -1,0 +1,61 @@
+{
+  "name": "ssh-agent",
+  "version": "0.1.0",
+  "description": "Run opencode (+ Oh My OpenAgent) against a remote machine over SSH: files via SSHFS mount, bash delegated over SSH. Nothing installed on the remote.",
+  "type": "module",
+  "bin": "./dist/cli.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./plugin": {
+      "types": "./dist/plugin/remote-ssh.d.ts",
+      "default": "./dist/plugin/remote-ssh.js"
+    },
+    "./src": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./src/*": {
+      "types": "./src/*.ts",
+      "default": "./src/*.ts"
+    }
+  },
+  "keywords": [
+    "opencode",
+    "ssh",
+    "sshfs",
+    "remote-development",
+    "bun"
+  ],
+  "files": [
+    "src",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json && chmod +x dist/cli.js",
+    "prepublishOnly": "rimraf dist \"*.tsbuildinfo\" && bun run build",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test src",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write ."
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@opencode-ai/plugin": "^0.4.0",
+    "@types/bun": "^1.2.0",
+    "rimraf": "^6.1.3",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}
