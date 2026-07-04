@@ -14,6 +14,7 @@ import {
   resolveSshTarget,
   saveRegistry,
 } from "./registry.ts";
+import { checkSshConnectivity, type SshConnectivityInput } from "./ssh-connectivity.ts";
 
 type RemoteAddOptions = {
   readonly sshHost?: string;
@@ -52,6 +53,20 @@ class UsageError extends Error {
   override readonly name = "UsageError";
 }
 
+export type CliDependencies = {
+  readonly registryPath: () => string;
+  readonly loadRegistry: typeof loadRegistry;
+  readonly saveRegistry: typeof saveRegistry;
+  readonly checkSshConnectivity: (input: SshConnectivityInput) => void;
+};
+
+const defaultDependencies: CliDependencies = {
+  registryPath,
+  loadRegistry,
+  saveRegistry,
+  checkSshConnectivity,
+};
+
 function runShell(command: string): number {
   const result = spawnSync("bash", ["-c", command], { stdio: "inherit" });
   return result.status ?? 1;
@@ -76,7 +91,7 @@ function mountForConfig(
   );
 }
 
-export function buildCli(): Command {
+export function buildCli(deps: CliDependencies = defaultDependencies): Command {
   const program = new Command();
   program
     .name("ssh-agent")
@@ -95,10 +110,11 @@ export function buildCli(): Command {
     .option("--identity <path>", "SSH identity file")
     .option("--base <path>", "default base path on the remote")
     .action((target: string | undefined, opts: RemoteAddOptions & { key: string }) => {
-      const path = registryPath();
+      const path = deps.registryPath();
       const entry = buildEntryFromOptions(target, opts);
-      const next = addRemote(loadRegistry(path), opts.key, entry);
-      saveRegistry(path, next);
+      const next = addRemote(deps.loadRegistry(path), opts.key, entry);
+      deps.checkSshConnectivity(resolveSshTarget({ [opts.key]: entry }, opts.key));
+      deps.saveRegistry(path, next);
       process.stdout.write(`Added remote ${JSON.stringify(opts.key)}.\n`);
     });
 
@@ -106,7 +122,7 @@ export function buildCli(): Command {
     .command("list")
     .description("List registered remotes")
     .action(() => {
-      const items = listRemotes(loadRegistry(registryPath()));
+      const items = listRemotes(deps.loadRegistry(deps.registryPath()));
       if (items.length === 0) {
         process.stdout.write("No remotes registered.\n");
         return;
@@ -121,8 +137,8 @@ export function buildCli(): Command {
     .command("remove")
     .argument("<key>", "registry key to remove")
     .action((key: string) => {
-      const path = registryPath();
-      saveRegistry(path, removeRemote(loadRegistry(path), key));
+      const path = deps.registryPath();
+      deps.saveRegistry(path, removeRemote(deps.loadRegistry(path), key));
       process.stdout.write(`Removed remote ${JSON.stringify(key)}.\n`);
     });
 
@@ -132,7 +148,7 @@ export function buildCli(): Command {
     .requiredOption("--remote <key:path>", "registry key and absolute remote path")
     .option("--no-mount", "write config without mounting")
     .action((opts: { remote: string; mount: boolean }) => {
-      const registry = loadRegistry(registryPath());
+      const registry = deps.loadRegistry(deps.registryPath());
       const config = initProject({ projectRoot: process.cwd(), spec: opts.remote, registry });
       process.stdout.write(
         `Wrote .opencode/ssh-agent.jsonc for remote ${JSON.stringify(config.key)}.\n`,
@@ -148,7 +164,7 @@ export function buildCli(): Command {
     .argument("<key:path>", "registry key and absolute remote path")
     .description("Mount a remote path at the identical local path")
     .action((spec: string) => {
-      const registry = loadRegistry(registryPath());
+      const registry = deps.loadRegistry(deps.registryPath());
       const config = initProject({ projectRoot: process.cwd(), spec, registry });
       const code = mountForConfig(registry, config.key, config.remotePath, config.mountRoot);
       if (code !== 0) process.exitCode = code;
