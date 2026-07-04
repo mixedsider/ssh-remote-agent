@@ -24,3 +24,14 @@ export {
 export type { RemoteExecInput } from "./remote-exec.ts";
 export { buildRemoteCommand, InvalidHostError, isValidSshHost } from "./remote-exec.ts";
 export { shellQuote } from "./shell-quote.ts";
+export type {
+  SshConnectivityInput,
+  SshConnectivityRunner,
+  SshConnectivityRunOptions,
+  SshConnectivityRunResult,
+} from "./ssh-connectivity.ts";
+export {
+  buildSshConnectivityArgs,
+  checkSshConnectivity,
+  SshConnectivityError,
+} from "./ssh-connectivity.ts";
