@@ -50,4 +50,10 @@ describe("package contract", () => {
     );
     expect(packageJson.devDependencies["rimraf"]).toBeDefined();
   });
+
+  test("standalone build emits a single executable file", () => {
+    expect(packageJson.scripts["build:standalone"]).toBe(
+      "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-agent",
+    );
+  });
 });

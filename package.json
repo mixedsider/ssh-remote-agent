@@ -38,6 +38,7 @@
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json && chmod +x dist/cli.js",
+    "build:standalone": "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-agent",
     "prepublishOnly": "rimraf dist \"*.tsbuildinfo\" && bun run build",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
