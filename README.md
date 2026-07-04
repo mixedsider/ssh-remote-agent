@@ -58,6 +58,23 @@ Remote machine:
 
 ## Installation
 
+For normal use, install a standalone release binary. It is a single executable
+file, so the target machine does not need a git checkout or a local TypeScript
+build.
+
+```bash
+install -m 755 ssh-agent /usr/local/bin/ssh-agent
+ssh-agent --help
+```
+
+Release maintainers can create that single-file binary with Bun:
+
+```bash
+bun run build:standalone
+```
+
+The generated file is `dist/ssh-agent`.
+
 For a development checkout, install dependencies and build the package.
 
 ```bash
@@ -74,6 +91,45 @@ To run the CLI directly from a development checkout:
 bun src/cli.ts --help
 ```
 
+## Prepare SSH key access
+
+`ssh-agent` requires passwordless SSH access from the main machine to the remote
+machine. If you do not already have a key for that remote, create one on the
+main machine:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/gpu_key -C "gpu ssh-agent access"
+```
+
+This creates two files:
+
+- `~/.ssh/gpu_key`: the **private key**. Keep this on the main machine and pass
+  this path to `--identity`.
+- `~/.ssh/gpu_key.pub`: the public key. Install this on the remote machine.
+
+Copy the public key to the remote user's `authorized_keys`:
+
+```bash
+ssh-copy-id -i ~/.ssh/gpu_key.pub user@10.0.0.5
+```
+
+If `ssh-copy-id` is unavailable, append the public key manually on the remote
+machine:
+
+```bash
+cat ~/.ssh/gpu_key.pub | ssh user@10.0.0.5 \
+  'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+```
+
+Confirm SSH works without a password prompt before registering the remote:
+
+```bash
+ssh -i ~/.ssh/gpu_key -o BatchMode=yes user@10.0.0.5 true
+```
+
+Do not pass the `.pub` file to `--identity`. `ssh-agent remote add --identity`
+must receive the private key path, such as `~/.ssh/gpu_key`.
+
 ## 1. Register a remote server
 
 Register each remote server under a **key**. Project configs refer to this key.
@@ -84,7 +140,8 @@ Register each remote server under a **key**. Project configs refer to this key.
 ssh-agent remote add user@10.0.0.5 --key gpu
 ```
 
-If you need a port or identity file, pass them at registration time.
+If you need a port or identity file, pass them at registration time. The
+identity file must be the **private key**, not the `.pub` public key.
 
 ```bash
 ssh-agent remote add user@10.0.0.5 \
@@ -92,6 +149,11 @@ ssh-agent remote add user@10.0.0.5 \
   --port 2222 \
   --identity ~/.ssh/gpu_key
 ```
+
+`remote add` runs a noninteractive SSH connectivity check before writing the
+registry. It uses `BatchMode=yes`, so password prompts are rejected instead of
+hanging. If the host, port, alias, or private key is wrong, the command exits
+non-zero and the registry is left unchanged.
 
 ### Reuse a `~/.ssh/config` Host alias
 
@@ -283,6 +345,38 @@ Install SSHFS on the main machine and confirm it is available.
 ```bash
 sshfs --version
 ```
+
+### CT/LXC/container environments need `/dev/fuse`
+
+SSHFS requires the FUSE device from the host. In CT, LXC, Docker, or similar
+container environments, installing `sshfs` inside the container is not enough.
+The host or provider must expose `/dev/fuse` to the container.
+
+Check inside the container:
+
+```bash
+ls -l /dev/fuse
+```
+
+If it is missing, SSHFS mount attempts fail with an error like this:
+
+```text
+fuse: device /dev/fuse not found. Kernel module not loaded?
+```
+
+The exact configuration depends on the host. For LXC/Proxmox-style CTs, the
+host-side settings often include FUSE support and a bind mount for `/dev/fuse`,
+for example:
+
+```text
+features: fuse=1,nesting=1
+lxc.cgroup2.devices.allow: c 10:229 rwm
+lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file 0 0
+```
+
+Use the equivalent option for your container platform. After enabling it,
+restart the container and confirm `/dev/fuse` exists before running
+`ssh-agent mount`.
 
 ### opencode tools fail after the mount drops
 

@@ -54,6 +54,23 @@ bash command    -> SSH command ----> build, test, git, scripts
 
 ## 설치
 
+일반 사용자는 standalone release binary를 설치하는 방식을 권장합니다. 이 파일은
+하나의 실행 파일이므로 사용하는 컴퓨터에서 git repo를 clone하거나 TypeScript build를
+직접 실행할 필요가 없습니다.
+
+```bash
+install -m 755 ssh-agent /usr/local/bin/ssh-agent
+ssh-agent --help
+```
+
+release 관리자는 Bun으로 이 단일 실행 파일을 만들 수 있습니다.
+
+```bash
+bun run build:standalone
+```
+
+생성되는 파일은 `dist/ssh-agent`입니다.
+
 개발 중인 checkout에서 실행하려면 의존성을 설치하고 build합니다.
 
 ```bash
@@ -70,6 +87,43 @@ build 후 CLI는 `dist/cli.js`로 생성됩니다. 패키지로 설치되어 있
 bun src/cli.ts --help
 ```
 
+## SSH key 접속 준비
+
+`ssh-agent`는 메인 컴퓨터에서 원격 컴퓨터로 비밀번호 없이 SSH 접속할 수 있어야
+합니다. 해당 원격 컴퓨터용 key가 아직 없다면 메인 컴퓨터에서 먼저 생성합니다.
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/gpu_key -C "gpu ssh-agent access"
+```
+
+이 명령은 두 파일을 만듭니다.
+
+- `~/.ssh/gpu_key`: **private key**입니다. 메인 컴퓨터에 보관하고
+  `--identity`에는 이 경로를 지정합니다.
+- `~/.ssh/gpu_key.pub`: public key입니다. 원격 컴퓨터에 등록합니다.
+
+public key를 원격 사용자의 `authorized_keys`에 복사합니다.
+
+```bash
+ssh-copy-id -i ~/.ssh/gpu_key.pub user@10.0.0.5
+```
+
+`ssh-copy-id`를 사용할 수 없다면 원격 컴퓨터에 public key를 직접 추가합니다.
+
+```bash
+cat ~/.ssh/gpu_key.pub | ssh user@10.0.0.5 \
+  'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
+```
+
+원격 서버를 등록하기 전에 비밀번호 프롬프트 없이 SSH가 되는지 확인합니다.
+
+```bash
+ssh -i ~/.ssh/gpu_key -o BatchMode=yes user@10.0.0.5 true
+```
+
+`--identity`에는 `.pub` 파일을 넣으면 안 됩니다. `ssh-agent remote add
+--identity`에는 `~/.ssh/gpu_key`처럼 private key 경로를 지정해야 합니다.
+
 ## 1. 원격 서버 등록
 
 먼저 원격 서버를 **key**로 등록합니다. 이 key는 프로젝트 설정에서 재사용됩니다.
@@ -80,7 +134,8 @@ bun src/cli.ts --help
 ssh-agent remote add user@10.0.0.5 --key gpu
 ```
 
-포트나 identity file이 필요하면 같이 지정합니다.
+포트나 identity file이 필요하면 같이 지정합니다. identity file은 `.pub` public
+key가 아니라 **private key**여야 합니다.
 
 ```bash
 ssh-agent remote add user@10.0.0.5 \
@@ -88,6 +143,11 @@ ssh-agent remote add user@10.0.0.5 \
   --port 2222 \
   --identity ~/.ssh/gpu_key
 ```
+
+`remote add`는 레지스트리에 저장하기 전에 비대화식 SSH 접속 테스트를 실행합니다.
+`BatchMode=yes`를 사용하므로 비밀번호 프롬프트가 뜨는 상황은 대기하지 않고
+실패합니다. host, port, alias, private key 설정에 문제가 있으면 명령은 non-zero로
+종료되고 레지스트리는 변경되지 않습니다.
 
 ### `~/.ssh/config` Host alias 재사용
 
@@ -279,6 +339,37 @@ ssh my-gpu true
 ```bash
 sshfs --version
 ```
+
+### CT/LXC/container 환경에서는 `/dev/fuse`가 필요합니다
+
+SSHFS는 host의 FUSE device가 필요합니다. CT, LXC, Docker 같은 container 환경에서는
+container 안에 `sshfs`를 설치하는 것만으로는 충분하지 않습니다. host나 provider가
+container에 `/dev/fuse`를 노출해야 합니다.
+
+container 안에서 확인합니다.
+
+```bash
+ls -l /dev/fuse
+```
+
+이 파일이 없다면 SSHFS mount는 보통 다음과 같은 에러로 실패합니다.
+
+```text
+fuse: device /dev/fuse not found. Kernel module not loaded?
+```
+
+정확한 설정 방법은 host 환경마다 다릅니다. LXC/Proxmox 스타일 CT에서는 host 쪽
+설정에 FUSE 지원과 `/dev/fuse` bind mount가 필요할 수 있습니다. 예시는 다음과
+같습니다.
+
+```text
+features: fuse=1,nesting=1
+lxc.cgroup2.devices.allow: c 10:229 rwm
+lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file 0 0
+```
+
+사용 중인 container platform에 맞는 동일한 옵션을 적용하세요. 설정 후 container를
+재시작하고 `/dev/fuse`가 존재하는지 확인한 뒤 `ssh-agent mount`를 실행합니다.
 
 ### 마운트가 끊긴 뒤 opencode 도구가 실패함
 
