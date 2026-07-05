@@ -1,17 +1,17 @@
 <div align='center' class='hidden'>
     <br/>
     <br/>
-    <h3>ssh-agent</h3>
+    <h3>ssh-remote-agent</h3>
     <p>Run opencode on remote machines through SSHFS and SSH.</p>
     <br/>
     <br/>
 </div>
 
-# ssh-agent
+# ssh-remote-agent
 
 English | [한국어](README.ko.md)
 
-`ssh-agent` is a Bun-based CLI and opencode plugin that lets you run **opencode
+`ssh-remote-agent` is a Bun-based CLI and opencode plugin that lets you run **opencode
 and Oh My OpenAgent on your main machine** while the actual project files and
 shell commands live on a **remote machine**.
 
@@ -28,7 +28,7 @@ bash command    -> SSH command ----> build, test, git, scripts
 
 ## How it works
 
-- **File operations**: `ssh-agent` mounts the remote project directory at the
+- **File operations**: `ssh-remote-agent` mounts the remote project directory at the
   same absolute path on the main machine. opencode file tools such as read,
   edit, write, and grep operate on the remote files without path mapping.
 - **Command execution**: the opencode plugin intercepts the `bash` tool before
@@ -63,8 +63,8 @@ file, so the target machine does not need a git checkout or a local TypeScript
 build.
 
 ```bash
-install -m 755 ssh-agent /usr/local/bin/ssh-agent
-ssh-agent --help
+install -m 755 ssh-remote-agent /usr/local/bin/ssh-remote-agent
+ssh-remote-agent --help
 ```
 
 Release maintainers can create that single-file binary with Bun:
@@ -73,7 +73,7 @@ Release maintainers can create that single-file binary with Bun:
 bun run build:standalone
 ```
 
-The generated file is `dist/ssh-agent`.
+The generated file is `dist/ssh-remote-agent`.
 
 For a development checkout, install dependencies and build the package.
 
@@ -83,7 +83,7 @@ bun run build
 ```
 
 After build, the CLI entrypoint is generated at `dist/cli.js`. When installed as
-a package, the command name is `ssh-agent`.
+a package, the command name is `ssh-remote-agent`.
 
 To run the CLI directly from a development checkout:
 
@@ -93,12 +93,12 @@ bun src/cli.ts --help
 
 ## Prepare SSH key access
 
-`ssh-agent` requires passwordless SSH access from the main machine to the remote
+`ssh-remote-agent` requires passwordless SSH access from the main machine to the remote
 machine. If you do not already have a key for that remote, create one on the
 main machine:
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/gpu_key -C "gpu ssh-agent access"
+ssh-keygen -t ed25519 -f ~/.ssh/gpu_key -C "gpu ssh-remote-agent access"
 ```
 
 This creates two files:
@@ -127,7 +127,7 @@ Confirm SSH works without a password prompt before registering the remote:
 ssh -i ~/.ssh/gpu_key -o BatchMode=yes user@10.0.0.5 true
 ```
 
-Do not pass the `.pub` file to `--identity`. `ssh-agent remote add --identity`
+Do not pass the `.pub` file to `--identity`. `ssh-remote-agent remote add --identity`
 must receive the private key path, such as `~/.ssh/gpu_key`.
 
 ## 1. Register a remote server
@@ -137,14 +137,14 @@ Register each remote server under a **key**. Project configs refer to this key.
 ### Register a direct SSH target
 
 ```bash
-ssh-agent remote add user@10.0.0.5 --key gpu
+ssh-remote-agent remote add user@10.0.0.5 --key gpu
 ```
 
 If you need a port or identity file, pass them at registration time. The
 identity file must be the **private key**, not the `.pub` public key.
 
 ```bash
-ssh-agent remote add user@10.0.0.5 \
+ssh-remote-agent remote add user@10.0.0.5 \
   --key gpu \
   --port 2222 \
   --identity ~/.ssh/gpu_key
@@ -168,21 +168,21 @@ Host my-gpu
 ```
 
 ```bash
-ssh-agent remote add --key gpu --ssh-host my-gpu
+ssh-remote-agent remote add --key gpu --ssh-host my-gpu
 ```
 
 ### List and remove remotes
 
 ```bash
-ssh-agent remote list
-ssh-agent remote remove gpu
+ssh-remote-agent remote list
+ssh-remote-agent remote remove gpu
 ```
 
-The registry is stored at `~/.ssh-agent/remotes.jsonc` by default. Override the
-base directory with `SSH_AGENT_HOME`.
+The registry is stored at the legacy compatibility path `~/.ssh-agent/remotes.jsonc` by
+default. Override the base directory with `SSH_AGENT_HOME`.
 
 ```bash
-SSH_AGENT_HOME=~/.config/ssh-agent ssh-agent remote list
+SSH_AGENT_HOME=~/.config/ssh-remote-agent ssh-remote-agent remote list
 ```
 
 ## 2. Initialize a project for remote mode
@@ -191,7 +191,7 @@ Run `init` from the project directory you want to use remotely.
 
 ```bash
 cd /home/user/my-project
-ssh-agent init --remote gpu:/home/user/my-project
+ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
 The `--remote` value uses the `<key>:<remote-absolute-path>` format.
@@ -208,7 +208,7 @@ On success, the project gets this file:
 Example:
 
 ```jsonc
-// ssh-agent remote-mode config. Delete this file to return to local mode.
+// ssh-remote-agent remote-mode config. Delete this file to return to local mode.
 {
   "key": "gpu",
   "remotePath": "/home/user/my-project",
@@ -220,7 +220,7 @@ By default, `init` writes the config and attempts to mount the remote directory.
 Use `--no-mount` when you only want to write the config.
 
 ```bash
-ssh-agent init --remote gpu:/home/user/my-project --no-mount
+ssh-remote-agent init --remote gpu:/home/user/my-project --no-mount
 ```
 
 ## 3. Configure the opencode plugin
@@ -229,7 +229,7 @@ Add the plugin to the project's `opencode.json` or `opencode.jsonc`.
 
 ```jsonc
 {
-  "plugin": ["ssh-agent/plugin"]
+  "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
 
@@ -244,19 +244,19 @@ After that, opencode behaves like this in the project:
 Mount the remote project again:
 
 ```bash
-ssh-agent mount gpu:/home/user/my-project
+ssh-remote-agent mount gpu:/home/user/my-project
 ```
 
 Check whether the mount is live:
 
 ```bash
-ssh-agent status /home/user/my-project
+ssh-remote-agent status /home/user/my-project
 ```
 
 Unmount it:
 
 ```bash
-ssh-agent unmount /home/user/my-project
+ssh-remote-agent unmount /home/user/my-project
 ```
 
 ## 5. Typical workflow
@@ -264,21 +264,21 @@ ssh-agent unmount /home/user/my-project
 Register the remote once.
 
 ```bash
-ssh-agent remote add --key gpu --ssh-host my-gpu
+ssh-remote-agent remote add --key gpu --ssh-host my-gpu
 ```
 
 Enable remote mode in the project.
 
 ```bash
 cd /home/user/my-project
-ssh-agent init --remote gpu:/home/user/my-project
+ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
 Add the opencode plugin.
 
 ```jsonc
 {
-  "plugin": ["ssh-agent/plugin"]
+  "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
 
@@ -296,14 +296,14 @@ rm .opencode/ssh-agent.jsonc
 Unmount if needed.
 
 ```bash
-ssh-agent unmount /home/user/my-project
+ssh-remote-agent unmount /home/user/my-project
 ```
 
 ## Notes and limitations
 
 ### Same absolute path mount
 
-`ssh-agent` mounts remote `/home/user/my-project` locally at
+`ssh-remote-agent` mounts remote `/home/user/my-project` locally at
 `/home/user/my-project`. This removes the need for path mapping inside opencode.
 
 The main machine must be able to create the same absolute path as a mount point.
@@ -376,7 +376,7 @@ lxc.mount.entry: /dev/fuse dev/fuse none bind,create=file 0 0
 
 Use the equivalent option for your container platform. After enabling it,
 restart the container and confirm `/dev/fuse` exists before running
-`ssh-agent mount`.
+`ssh-remote-agent mount`.
 
 ### opencode tools fail after the mount drops
 
@@ -384,7 +384,7 @@ This is intentional. The plugin fails closed to avoid local shadow writes.
 Remount the project.
 
 ```bash
-ssh-agent mount gpu:/home/user/my-project
+ssh-remote-agent mount gpu:/home/user/my-project
 ```
 
 ### The remote key is not found
@@ -392,13 +392,13 @@ ssh-agent mount gpu:/home/user/my-project
 Check the registry.
 
 ```bash
-ssh-agent remote list
+ssh-remote-agent remote list
 ```
 
 If you use a custom registry location, use the same `SSH_AGENT_HOME` value.
 
 ```bash
-SSH_AGENT_HOME=~/.config/ssh-agent ssh-agent remote list
+SSH_AGENT_HOME=~/.config/ssh-remote-agent ssh-remote-agent remote list
 ```
 
 ### opencode still runs locally
@@ -406,8 +406,8 @@ SSH_AGENT_HOME=~/.config/ssh-agent ssh-agent remote list
 Check these items:
 
 1. `.opencode/ssh-agent.jsonc` exists in the project root.
-2. `opencode.json` includes `"ssh-agent/plugin"`.
-3. `ssh-agent status <mountRoot>` reports a live mount.
+2. `opencode.json` includes `"ssh-remote-agent/plugin"`.
+3. `ssh-remote-agent status <mountRoot>` reports a live mount.
 
 ## Development
 
