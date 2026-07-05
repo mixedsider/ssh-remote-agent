@@ -192,10 +192,11 @@ SSH_AGENT_HOME=~/.config/ssh-remote-agent ssh-remote-agent remote list
 
 ## 2. 프로젝트를 원격 모드로 초기화
 
-작업하려는 프로젝트 디렉터리에서 `init`을 실행합니다.
+opencode가 사용할 로컬 프로젝트 디렉터리에서 `init`을 실행합니다. 로컬 경로와 원격
+절대경로는 달라도 됩니다. 프로젝트 내용만 같은 대상이면 됩니다.
 
 ```bash
-cd /home/user/my-project
+cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
@@ -203,6 +204,7 @@ ssh-remote-agent init --remote gpu:/home/user/my-project
 
 - `gpu`: 앞에서 등록한 원격 key
 - `/home/user/my-project`: 원격 컴퓨터의 실제 프로젝트 절대경로
+- `/root/my-project`: `init`을 실행한 로컬 SSHFS 마운트 지점
 
 초기화가 성공하면 프로젝트에 다음 파일이 생성됩니다.
 
@@ -217,7 +219,7 @@ ssh-remote-agent init --remote gpu:/home/user/my-project
 {
   "key": "gpu",
   "remotePath": "/home/user/my-project",
-  "mountRoot": "/home/user/my-project"
+  "mountRoot": "/root/my-project"
 }
 ```
 
@@ -249,19 +251,20 @@ ssh-remote-agent init --remote gpu:/home/user/my-project --no-mount
 원격 프로젝트를 다시 마운트해야 할 때는 `mount`를 사용합니다.
 
 ```bash
+cd /root/my-project
 ssh-remote-agent mount gpu:/home/user/my-project
 ```
 
 마운트 상태를 확인합니다.
 
 ```bash
-ssh-remote-agent status /home/user/my-project
+ssh-remote-agent status /root/my-project
 ```
 
 마운트를 해제합니다.
 
 ```bash
-ssh-remote-agent unmount /home/user/my-project
+ssh-remote-agent unmount /root/my-project
 ```
 
 ## 5. 일반적인 사용 흐름
@@ -275,7 +278,7 @@ ssh-remote-agent remote add --key gpu --ssh-host my-gpu
 프로젝트에서 원격 모드를 켭니다.
 
 ```bash
-cd /home/user/my-project
+cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
@@ -301,18 +304,19 @@ rm .opencode/ssh-agent.jsonc
 필요하면 마운트도 해제합니다.
 
 ```bash
-ssh-remote-agent unmount /home/user/my-project
+ssh-remote-agent unmount /root/my-project
 ```
 
 ## 주의사항
 
-### 동일 절대경로 마운트
+### 로컬 마운트 경로와 원격 경로
 
-`ssh-remote-agent`는 원격 `/home/user/my-project`를 로컬에서도 `/home/user/my-project`에
-마운트하는 방식을 사용합니다. 이렇게 해야 opencode 내부에서 별도 path mapping이
-필요 없습니다.
+`ssh-remote-agent`는 `init` 또는 `mount`를 실행한 로컬 디렉터리에 원격 프로젝트 경로를
+마운트합니다. 예를 들어 로컬 `/root/my-project`에 원격 `/home/user/my-project`를
+마운트할 수 있습니다.
 
-따라서 메인 컴퓨터에도 같은 절대경로를 마운트 포인트로 만들 수 있어야 합니다.
+opencode와 Kimaki 세션은 이 로컬 마운트 경로 안에서 시작해야 파일 도구가 원격 파일을
+보게 됩니다.
 
 ### split-brain 경로
 

@@ -29,8 +29,8 @@ bash command    -> SSH command ----> build, test, git, scripts
 ## How it works
 
 - **File operations**: `ssh-remote-agent` mounts the remote project directory at the
-  same absolute path on the main machine. opencode file tools such as read,
-  edit, write, and grep operate on the remote files without path mapping.
+  current local project path. opencode file tools such as read, edit, write, and
+  grep operate on the remote files through that mount.
 - **Command execution**: the opencode plugin intercepts the `bash` tool before
   execution. It base64-encodes the original command and sends it to remote
   `bash -se` over SSH.
@@ -198,10 +198,12 @@ SSH_AGENT_HOME=~/.config/ssh-remote-agent ssh-remote-agent remote list
 
 ## 2. Initialize a project for remote mode
 
-Run `init` from the project directory you want to use remotely.
+Run `init` from the local project directory you want opencode to use. The local
+directory may differ from the remote absolute path; only the project contents
+need to correspond.
 
 ```bash
-cd /home/user/my-project
+cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
@@ -209,6 +211,7 @@ The `--remote` value uses the `<key>:<remote-absolute-path>` format.
 
 - `gpu`: the remote key registered earlier
 - `/home/user/my-project`: the real absolute project path on the remote machine
+- `/root/my-project`: the local SSHFS mount point because that is where `init` ran
 
 On success, the project gets this file:
 
@@ -223,7 +226,7 @@ Example:
 {
   "key": "gpu",
   "remotePath": "/home/user/my-project",
-  "mountRoot": "/home/user/my-project"
+  "mountRoot": "/root/my-project"
 }
 ```
 
@@ -255,19 +258,20 @@ After that, opencode behaves like this in the project:
 Mount the remote project again:
 
 ```bash
+cd /root/my-project
 ssh-remote-agent mount gpu:/home/user/my-project
 ```
 
 Check whether the mount is live:
 
 ```bash
-ssh-remote-agent status /home/user/my-project
+ssh-remote-agent status /root/my-project
 ```
 
 Unmount it:
 
 ```bash
-ssh-remote-agent unmount /home/user/my-project
+ssh-remote-agent unmount /root/my-project
 ```
 
 ## 5. Typical workflow
@@ -281,7 +285,7 @@ ssh-remote-agent remote add --key gpu --ssh-host my-gpu
 Enable remote mode in the project.
 
 ```bash
-cd /home/user/my-project
+cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
@@ -307,17 +311,19 @@ rm .opencode/ssh-agent.jsonc
 Unmount if needed.
 
 ```bash
-ssh-remote-agent unmount /home/user/my-project
+ssh-remote-agent unmount /root/my-project
 ```
 
 ## Notes and limitations
 
-### Same absolute path mount
+### Local mount path versus remote path
 
-`ssh-remote-agent` mounts remote `/home/user/my-project` locally at
-`/home/user/my-project`. This removes the need for path mapping inside opencode.
+`ssh-remote-agent` mounts the remote project path at the local directory where
+you run `init` or `mount`. For example, local `/root/my-project` can mount remote
+`/home/user/my-project`.
 
-The main machine must be able to create the same absolute path as a mount point.
+Keep opencode and Kimaki sessions inside that local mount path so file tools see
+the mounted remote files.
 
 ### Split-brain paths
 
