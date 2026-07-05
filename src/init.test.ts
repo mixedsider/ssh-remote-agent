@@ -40,7 +40,7 @@ describe("parseRemoteSpec", () => {
 
 describe("initProject", () => {
   it("writes a project config that loadRemoteConfig can read back", () => {
-    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-agent-init-"));
+    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-remote-agent-init-"));
     const registry = addRemote({}, "gpu", { host: "10.0.0.5", user: "user" });
     try {
       const config = initProject({ projectRoot, spec: "gpu:/home/user/proj", registry });
@@ -56,7 +56,7 @@ describe("initProject", () => {
   });
 
   it("writes JSONC with a header comment", () => {
-    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-agent-init-"));
+    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-remote-agent-init-"));
     const registry = addRemote({}, "gpu", { host: "10.0.0.5" });
     try {
       initProject({ projectRoot, spec: "gpu:/srv/app", registry });
@@ -69,7 +69,7 @@ describe("initProject", () => {
   });
 
   it("throws RemoteNotFoundError when the key is not registered", () => {
-    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-agent-init-"));
+    const projectRoot = mkdtempSync(join(tmpdir(), "ssh-remote-agent-init-"));
     try {
       expect(() => initProject({ projectRoot, spec: "ghost:/srv/app", registry: {} })).toThrow(
         RemoteNotFoundError,

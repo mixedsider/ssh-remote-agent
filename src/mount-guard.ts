@@ -23,7 +23,7 @@ export class MountNotLiveError extends Error {
     super(
       `SSHFS mount at ${mountRoot} is not live. Refusing to run remote-mode operations ` +
         "to avoid reading or writing the local machine's filesystem. " +
-        "Re-mount with `ssh-agent mount` and retry.",
+        "Re-mount with `ssh-remote-agent mount` and retry.",
     );
     this.mountRoot = mountRoot;
   }

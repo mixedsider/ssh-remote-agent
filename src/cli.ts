@@ -94,9 +94,9 @@ function mountForConfig(
 export function buildCli(deps: CliDependencies = defaultDependencies): Command {
   const program = new Command();
   program
-    .name("ssh-agent")
+    .name("ssh-remote-agent")
     .description("Run opencode against a remote machine over SSH (files via SSHFS, bash via SSH).")
-    .version("0.1.0");
+    .version("0.2.0");
 
   const remote = program.command("remote").description("Manage the remote machine registry");
 

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { ConfigParseError, loadRemoteConfig } from "./config.ts";
 
 function makeProject(configBody: string | null): string {
-  const root = mkdtempSync(join(tmpdir(), "ssh-agent-cfg-"));
+  const root = mkdtempSync(join(tmpdir(), "ssh-remote-agent-cfg-"));
   if (configBody !== null) {
     mkdirSync(join(root, ".opencode"), { recursive: true });
     writeFileSync(join(root, ".opencode", "ssh-agent.jsonc"), configBody);

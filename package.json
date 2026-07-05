@@ -1,6 +1,6 @@
 {
-  "name": "ssh-agent",
-  "version": "0.1.0",
+  "name": "ssh-remote-agent",
+  "version": "0.2.0",
   "description": "Run opencode (+ Oh My OpenAgent) against a remote machine over SSH: files via SSHFS mount, bash delegated over SSH. Nothing installed on the remote.",
   "type": "module",
   "bin": "./dist/cli.js",
@@ -38,7 +38,7 @@
   ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json && chmod +x dist/cli.js",
-    "build:standalone": "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-agent",
+    "build:standalone": "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-remote-agent",
     "prepublishOnly": "rimraf dist \"*.tsbuildinfo\" && bun run build",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",

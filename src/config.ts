@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 
 /**
- * Per-project remote configuration, written by `ssh-agent init` and read by the
+ * Per-project remote configuration, written by `ssh-remote-agent init` and read by the
  * opencode plugin at runtime. Its absence means "pure local mode".
  *
  * Stored at `<projectRoot>/.opencode/ssh-agent.jsonc`.
@@ -57,7 +57,7 @@ export class ConfigParseError extends Error {
   override readonly name = "ConfigParseError";
   readonly path: string;
   constructor(path: string, reason: string) {
-    super(`Failed to parse ssh-agent config at ${path}: ${reason}`);
+    super(`Failed to parse ssh-remote-agent config at ${path}: ${reason}`);
     this.path = path;
   }
 }

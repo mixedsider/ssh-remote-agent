@@ -14,12 +14,12 @@ import {
 } from "./registry.ts";
 
 function tmpRegistryPath(): string {
-  return join(mkdtempSync(join(tmpdir(), "ssh-agent-reg-")), "remotes.jsonc");
+  return join(mkdtempSync(join(tmpdir(), "ssh-remote-agent-reg-")), "remotes.jsonc");
 }
 
 describe("loadRegistry", () => {
   it("returns an empty registry when the file does not exist", () => {
-    const path = join(mkdtempSync(join(tmpdir(), "ssh-agent-reg-")), "nope.jsonc");
+    const path = join(mkdtempSync(join(tmpdir(), "ssh-remote-agent-reg-")), "nope.jsonc");
     expect(loadRegistry(path)).toEqual({});
   });
 });

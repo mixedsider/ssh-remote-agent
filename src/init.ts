@@ -49,7 +49,7 @@ export function initProject(input: InitInput): RemoteProjectConfig {
 
   const config: RemoteProjectConfig = { key, remotePath, mountRoot: remotePath };
   const path = join(input.projectRoot, PROJECT_CONFIG_RELATIVE_PATH);
-  const body = `// ssh-agent remote-mode config. Delete this file to return to local mode.\n${JSON.stringify(
+  const body = `// ssh-remote-agent remote-mode config. Delete this file to return to local mode.\n${JSON.stringify(
     config,
     null,
     2,

@@ -9,7 +9,7 @@ function createDeps(input: {
   readonly onSave: (registry: Registry) => void;
 }): CliDependencies {
   return {
-    registryPath: () => "/tmp/ssh-agent-test/remotes.jsonc",
+    registryPath: () => "/tmp/ssh-remote-agent-test/remotes.jsonc",
     loadRegistry: () => input.registry,
     saveRegistry: (_path, registry) => input.onSave(registry),
     checkSshConnectivity: input.check,

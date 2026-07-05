@@ -5,6 +5,8 @@ import { join } from "node:path";
 type ExportTarget = string | { readonly types: string; readonly default: string };
 
 type PackageJson = {
+  readonly name: string;
+  readonly version: string;
   readonly bin: string;
   readonly main: string;
   readonly types: string;
@@ -24,6 +26,11 @@ function expectExport(
 }
 
 describe("package contract", () => {
+  test("publishes the renamed package identity", () => {
+    expect(packageJson.name).toBe("ssh-remote-agent");
+    expect(packageJson.version).toBe("0.2.0");
+  });
+
   test("published entrypoints match source entrypoints", () => {
     expect(packageJson.bin).toBe("./dist/cli.js");
     expect(packageJson.main).toBe("./dist/index.js");
@@ -53,7 +60,7 @@ describe("package contract", () => {
 
   test("standalone build emits a single executable file", () => {
     expect(packageJson.scripts["build:standalone"]).toBe(
-      "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-agent",
+      "bun build --compile --minify ./src/cli.ts --outfile dist/ssh-remote-agent",
     );
   });
 });
