@@ -14,7 +14,7 @@ export const RemoteProjectConfigSchema = z
     key: z.string().min(1),
     /** Absolute path on the remote machine where the project lives. */
     remotePath: z.string().min(1),
-    /** Local SSHFS mount point. Identical to `remotePath` by design. */
+    /** Local SSHFS mount point, normally the project root where init ran. */
     mountRoot: z.string().min(1),
   })
   .readonly();

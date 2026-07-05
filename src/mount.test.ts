@@ -5,7 +5,7 @@ describe("buildSshfsCommand", () => {
   const base = {
     sshHost: "user@10.0.0.5",
     remotePath: "/home/user/proj",
-    mountRoot: "/home/user/proj",
+    mountRoot: "/root/proj",
     port: undefined,
     identityFile: undefined,
   };
@@ -21,7 +21,7 @@ describe("buildSshfsCommand", () => {
   it("targets host:remotePath and the local mount root", () => {
     const cmd = buildSshfsCommand(base);
     expect(cmd).toContain("'user@10.0.0.5:/home/user/proj'");
-    expect(cmd).toContain("'/home/user/proj'");
+    expect(cmd).toContain("'/root/proj'");
   });
 
   it("adds -p port when a port is given", () => {

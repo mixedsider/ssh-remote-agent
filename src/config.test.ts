@@ -28,13 +28,13 @@ describe("loadRemoteConfig", () => {
       // which remote
       "key": "gpu",
       "remotePath": "/home/user/proj",
-      "mountRoot": "/home/user/proj", /* identical by design */
+      "mountRoot": "/root/proj",
     }`);
     try {
       expect(loadRemoteConfig(root)).toEqual({
         key: "gpu",
         remotePath: "/home/user/proj",
-        mountRoot: "/home/user/proj",
+        mountRoot: "/root/proj",
       });
     } finally {
       rmSync(root, { recursive: true, force: true });

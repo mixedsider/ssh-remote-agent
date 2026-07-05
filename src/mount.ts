@@ -5,7 +5,7 @@ export type SshfsInput = {
   readonly sshHost: string;
   /** Absolute path on the remote to mount. */
   readonly remotePath: string;
-  /** Local mount point (identical to remotePath by design). */
+  /** Local mount point, usually the project root where the CLI runs. */
   readonly mountRoot: string;
   /** Optional SSH port. */
   readonly port: number | undefined;
@@ -28,8 +28,8 @@ const SSHFS_OPTIONS = [
 
 /**
  * Build the `sshfs` command that mounts the remote project directory at the
- * identical local path. Port and identity file are folded into `-o` options so
- * the whole thing is a single invocation.
+ * local project root. Port and identity file are folded into `-o` options so the
+ * whole thing is a single invocation.
  */
 export function buildSshfsCommand(input: SshfsInput): string {
   const options: string[] = [...SSHFS_OPTIONS];
