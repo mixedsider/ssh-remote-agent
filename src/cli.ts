@@ -2,6 +2,7 @@
 
 import { spawnSync } from "node:child_process";
 import { Command } from "commander";
+import packageJson from "../package.json" with { type: "json" };
 import { initProject } from "./init.ts";
 import { buildSshfsCommand, buildUnmountCommand } from "./mount.ts";
 import { registryPath } from "./paths.ts";
@@ -96,7 +97,7 @@ export function buildCli(deps: CliDependencies = defaultDependencies): Command {
   program
     .name("ssh-remote-agent")
     .description("Run opencode against a remote machine over SSH (files via SSHFS, bash via SSH).")
-    .version("0.2.0");
+    .version(packageJson.version);
 
   const remote = program.command("remote").description("Manage the remote machine registry");
 

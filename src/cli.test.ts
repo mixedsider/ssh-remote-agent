@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { buildCli, type CliDependencies } from "./cli.ts";
 import type { Registry } from "./registry.ts";
 import { SshConnectivityError, type SshConnectivityInput } from "./ssh-connectivity.ts";
+
+const packageJson = JSON.parse(
+  readFileSync(join(import.meta.dir, "..", "package.json"), "utf8"),
+) as { readonly version: string };
 
 function createDeps(input: {
   readonly registry: Registry;
@@ -17,6 +23,28 @@ function createDeps(input: {
 }
 
 describe("cli remote add", () => {
+  test("prints the package version for --version", async () => {
+    const output: string[] = [];
+    const program = buildCli(
+      createDeps({
+        registry: {},
+        check: () => {},
+        onSave: () => {},
+      }),
+    )
+      .exitOverride()
+      .configureOutput({
+        writeOut: (text) => output.push(text),
+        writeErr: (text) => output.push(text),
+      });
+
+    await expect(program.parseAsync(["--version"], { from: "user" })).rejects.toMatchObject({
+      code: "commander.version",
+    });
+
+    expect(output.join("")).toBe(`${packageJson.version}\n`);
+  });
+
   test("checks ssh connectivity before saving a new remote", async () => {
     const checked: SshConnectivityInput[] = [];
     let saved: Registry | undefined;
