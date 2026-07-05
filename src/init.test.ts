@@ -47,7 +47,7 @@ describe("initProject", () => {
       expect(config).toEqual({
         key: "gpu",
         remotePath: "/home/user/proj",
-        mountRoot: "/home/user/proj",
+        mountRoot: projectRoot,
       });
       expect(loadRemoteConfig(projectRoot)).toEqual(config);
     } finally {

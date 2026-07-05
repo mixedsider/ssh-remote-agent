@@ -36,8 +36,8 @@ export type InitInput = {
 
 /**
  * Initialize a project for remote mode: resolve the registry key, then write
- * `<projectRoot>/.opencode/ssh-agent.jsonc`. The mount root equals the remote
- * path by design (identical-path mounting).
+ * `<projectRoot>/.opencode/ssh-agent.jsonc`. The mount root is the local
+ * project root; the remote path may differ.
  *
  * @throws {RemoteNotFoundError} when the key is not in the registry.
  * @throws {InvalidRemoteSpecError} when the spec is malformed.
@@ -47,7 +47,7 @@ export function initProject(input: InitInput): RemoteProjectConfig {
   // Validate the key exists (throws RemoteNotFoundError otherwise).
   resolveSshTarget(input.registry, key);
 
-  const config: RemoteProjectConfig = { key, remotePath, mountRoot: remotePath };
+  const config: RemoteProjectConfig = { key, remotePath, mountRoot: input.projectRoot };
   const path = join(input.projectRoot, PROJECT_CONFIG_RELATIVE_PATH);
   const body = `// ssh-remote-agent remote-mode config. Delete this file to return to local mode.\n${JSON.stringify(
     config,
