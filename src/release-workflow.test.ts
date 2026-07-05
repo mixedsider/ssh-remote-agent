@@ -8,8 +8,8 @@ describe("release workflow", () => {
     expect(workflow).toContain("branches: [main, master]");
     expect(workflow).toContain("contents: write");
     expect(workflow).toContain("bun run build:standalone");
-    expect(workflow).toContain("./dist/ssh-agent --help");
-    expect(workflow).toContain("dist/ssh-agent.sha256");
+    expect(workflow).toContain("./dist/ssh-remote-agent --help");
+    expect(workflow).toContain("dist/ssh-remote-agent.sha256");
     expect(workflow).toContain("gh release create");
     expect(workflow).toContain("secrets.GITHUB_TOKEN");
   });
