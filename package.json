@@ -1,6 +1,6 @@
 {
   "name": "ssh-remote-agent",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Run opencode (+ Oh My OpenAgent) against a remote machine over SSH: files via SSHFS mount, bash delegated over SSH. Nothing installed on the remote.",
   "type": "module",
   "bin": "./dist/cli.js",
