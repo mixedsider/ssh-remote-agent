@@ -162,7 +162,7 @@ export function buildCli(deps: CliDependencies = defaultDependencies): Command {
   program
     .command("mount")
     .argument("<key:path>", "registry key and absolute remote path")
-    .description("Mount a remote path at the identical local path")
+    .description("Mount a remote path at the current local project path")
     .action((spec: string) => {
       const registry = deps.loadRegistry(deps.registryPath());
       const config = initProject({ projectRoot: process.cwd(), spec, registry });

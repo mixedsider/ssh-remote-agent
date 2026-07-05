@@ -31,8 +31,8 @@ export class MountNotLiveError extends Error {
 
 /**
  * Fail closed if the SSHFS mount is not live. This is the primary guard against
- * the most dangerous failure mode: if the mount drops, an identical local path
- * still exists, so file tools would silently read/write the MAIN machine's
+ * the most dangerous failure mode: if the mount drops, the local mount path may
+ * still exist, so file tools would silently read/write the MAIN machine's
  * filesystem. Every remote-mode tool invocation must pass this first.
  *
  * @throws {MountNotLiveError} when the mount is missing, stale, or the check fails.

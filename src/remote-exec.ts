@@ -9,7 +9,7 @@ export type RemoteExecInput = {
   readonly host: string;
   readonly port: number | undefined;
   readonly identityFile: string | undefined;
-  /** Absolute working directory on the remote (identical to the local mount by design). */
+  /** Absolute working directory on the remote. */
   readonly remoteWorkdir: string;
   /** Local SSHFS mount point to flush before executing remotely. */
   readonly mountRoot: string;
