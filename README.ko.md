@@ -54,13 +54,24 @@ bash command    -> SSH command ----> build, test, git, scripts
 
 ## 설치
 
-일반 사용자는 standalone release binary를 설치하는 방식을 권장합니다. 이 파일은
-하나의 실행 파일이므로 사용하는 컴퓨터에서 git repo를 clone하거나 TypeScript build를
-직접 실행할 필요가 없습니다.
+일반 사용자는 최신 GitHub Release의 standalone binary를 설치하는 방식을 권장합니다.
+이 파일은 하나의 실행 파일이므로 사용하는 컴퓨터에서 git repo를 clone하거나
+TypeScript build를 직접 실행할 필요가 없습니다.
 
 ```bash
-install -m 755 ssh-remote-agent /usr/local/bin/ssh-remote-agent
+curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent \
+  -o ssh-remote-agent
+chmod +x ssh-remote-agent
+sudo install -m 755 ssh-remote-agent /usr/local/bin/ssh-remote-agent
 ssh-remote-agent --help
+```
+
+설치 전에 checksum을 확인하려면 다음을 실행합니다.
+
+```bash
+curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent.sha256 \
+  -o ssh-remote-agent.sha256
+sha256sum -c ssh-remote-agent.sha256
 ```
 
 release 관리자는 Bun으로 이 단일 실행 파일을 만들 수 있습니다.

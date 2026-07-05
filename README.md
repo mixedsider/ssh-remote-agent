@@ -58,13 +58,24 @@ Remote machine:
 
 ## Installation
 
-For normal use, install a standalone release binary. It is a single executable
-file, so the target machine does not need a git checkout or a local TypeScript
-build.
+For normal use, install the standalone binary from the latest GitHub Release.
+It is a single executable file, so the target machine does not need a git
+checkout or a local TypeScript build.
 
 ```bash
-install -m 755 ssh-remote-agent /usr/local/bin/ssh-remote-agent
+curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent \
+  -o ssh-remote-agent
+chmod +x ssh-remote-agent
+sudo install -m 755 ssh-remote-agent /usr/local/bin/ssh-remote-agent
 ssh-remote-agent --help
+```
+
+Optionally verify the checksum before installing:
+
+```bash
+curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent.sha256 \
+  -o ssh-remote-agent.sha256
+sha256sum -c ssh-remote-agent.sha256
 ```
 
 Release maintainers can create that single-file binary with Bun:
