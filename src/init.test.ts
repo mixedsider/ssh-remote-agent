@@ -21,16 +21,22 @@ describe("parseRemoteSpec", () => {
     });
   });
 
-  it("throws when there is no colon", () => {
-    expect(() => parseRemoteSpec("gpu")).toThrow(InvalidRemoteSpecError);
+  it("parses successfully when there is no colon", () => {
+    expect(parseRemoteSpec("gpu")).toEqual({
+      key: "gpu",
+      remotePath: undefined,
+    });
   });
 
   it("throws when the key is empty", () => {
     expect(() => parseRemoteSpec(":/home/user/proj")).toThrow(InvalidRemoteSpecError);
   });
 
-  it("throws when the path is empty", () => {
-    expect(() => parseRemoteSpec("gpu:")).toThrow(InvalidRemoteSpecError);
+  it("parses successfully when the path is empty", () => {
+    expect(parseRemoteSpec("gpu:")).toEqual({
+      key: "gpu",
+      remotePath: undefined,
+    });
   });
 
   it("requires an absolute remote path", () => {
@@ -78,4 +84,18 @@ describe("initProject", () => {
       rmSync(projectRoot, { recursive: true, force: true });
     }
   });
+
+  it("defaults remotePath to /home/user/project-name style when omitted", () => {
+    const projectRoot = "/tmp/my-awesome-project";
+    const registry = addRemote({}, "gpu", { host: "10.0.0.5", user: "cooluser" });
+    const config = initProject({ projectRoot, spec: "gpu", registry });
+    expect(config).toEqual({
+      key: "gpu",
+      remotePath: "/home/cooluser/my-awesome-project",
+      mountRoot: projectRoot,
+    });
+    // Clean up .opencode created under /tmp/my-awesome-project
+    rmSync(join(projectRoot, ".opencode"), { recursive: true, force: true });
+  });
 });
+

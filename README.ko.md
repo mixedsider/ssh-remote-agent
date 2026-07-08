@@ -232,10 +232,57 @@ ssh-remote-agent init --remote gpu:/home/user/my-project --no-mount
 
 ## 3. opencode 플러그인 설정
 
-프로젝트의 `opencode.json` 또는 `opencode.jsonc`에 플러그인을 추가합니다.
+`ssh-remote-agent`는 메인 컴퓨터에서 실행되는 opencode, Oh My OpenAgent,
+Kimaki와 함께 쓰도록 설계되어 있습니다. 권장 방식은 opencode 전역 설정에 플러그인을
+한 번 등록하고, 각 프로젝트는 `.opencode/ssh-agent.jsonc`가 있을 때만 원격 모드로
+opt-in 하는 방식입니다.
+
+### opencode 전역 플러그인
+
+opencode 전역 설정 파일에 플러그인을 추가합니다.
+
+```text
+~/.config/opencode/opencode.json
+```
+
+`ssh-remote-agent`가 opencode에서 resolve 가능한 package로 설치되어 있다면 package
+plugin spec을 사용합니다.
 
 ```jsonc
 {
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["ssh-remote-agent/plugin"]
+}
+```
+
+GitHub Release의 standalone binary만 설치했다면, opencode가 import할 plugin module은
+별도로 필요합니다. 이 경우 build된 checkout의 plugin 파일을 file URL로 등록합니다.
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["file:///root/.kimaki/projects/ssh-agent/dist/plugin/remote-ssh.js"]
+}
+```
+
+checkout에서 이 plugin 파일을 만들려면 다음을 실행합니다.
+
+```bash
+bun install
+bun run build
+```
+
+opencode 설정은 시작할 때 로드됩니다. 전역 설정을 바꾼 뒤에는 opencode, Oh My
+OpenAgent, 또는 Kimaki 세션을 새로 시작해야 적용됩니다.
+
+### 프로젝트별 플러그인
+
+특정 프로젝트에만 적용하고 싶다면 프로젝트의 `opencode.json` 또는 `opencode.jsonc`에
+플러그인을 추가할 수도 있습니다.
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
   "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
@@ -244,7 +291,8 @@ ssh-remote-agent init --remote gpu:/home/user/my-project --no-mount
 
 - 파일 도구: SSHFS 마운트된 원격 프로젝트 파일을 읽고 씁니다.
 - bash 도구: 등록된 원격 서버로 SSH 위임됩니다.
-- `.opencode/ssh-agent.jsonc`가 없으면 플러그인은 아무 것도 하지 않습니다.
+- `.opencode/ssh-agent.jsonc`가 없으면 전역 플러그인으로 등록되어 있어도 아무 것도 하지
+  않습니다.
 
 ## 4. 마운트 관리
 
@@ -282,16 +330,23 @@ cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
-opencode 설정에 플러그인을 추가합니다.
+opencode 플러그인을 전역 설정에 한 번 등록하거나, 이 프로젝트의 `opencode.jsonc`에
+추가합니다.
 
 ```jsonc
 {
+  "$schema": "https://opencode.ai/config.json",
   "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
 
 그 다음 평소처럼 opencode를 실행합니다. opencode가 파일을 수정하면 SSHFS 마운트를
 통해 원격 파일이 바뀌고, 테스트나 빌드 명령은 SSH를 통해 원격에서 실행됩니다.
+
+Kimaki에서 사용할 때는 로컬 마운트 경로를 Kimaki 프로젝트로 등록하고, 새 세션을 그
+경로에서 시작해야 합니다. 예를 들어 로컬 `/root/my-project`가 원격
+`gpu:/home/user/my-project`를 마운트한다면 Kimaki 프로젝트 디렉터리는
+`/root/my-project`여야 합니다.
 
 ## 로컬 모드로 되돌리기
 

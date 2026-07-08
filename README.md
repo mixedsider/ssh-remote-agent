@@ -239,10 +239,56 @@ ssh-remote-agent init --remote gpu:/home/user/my-project --no-mount
 
 ## 3. Configure the opencode plugin
 
-Add the plugin to the project's `opencode.json` or `opencode.jsonc`.
+`ssh-remote-agent` is designed to work with opencode, Oh My OpenAgent, and
+Kimaki from the main machine. The recommended setup is to register the plugin
+globally once, then opt in per project with `.opencode/ssh-agent.jsonc`.
+
+### Global opencode plugin
+
+Add the plugin to the global opencode config:
+
+```text
+~/.config/opencode/opencode.json
+```
+
+If `ssh-remote-agent` is installed as a package that opencode can resolve, use
+the package plugin spec:
 
 ```jsonc
 {
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["ssh-remote-agent/plugin"]
+}
+```
+
+If you installed only the standalone release binary, opencode still needs a
+plugin module path. Use a built checkout and register the plugin by file URL:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["file:///root/.kimaki/projects/ssh-agent/dist/plugin/remote-ssh.js"]
+}
+```
+
+Build that plugin file from a checkout with:
+
+```bash
+bun install
+bun run build
+```
+
+opencode loads config only at startup. Restart opencode, Oh My OpenAgent, or the
+Kimaki session after changing the global config.
+
+### Project-local plugin
+
+You can also add the plugin only to one project's `opencode.json` or
+`opencode.jsonc`.
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
   "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
@@ -251,7 +297,8 @@ After that, opencode behaves like this in the project:
 
 - File tools read and write through the SSHFS-mounted remote project.
 - Bash tools run on the registered remote server over SSH.
-- If `.opencode/ssh-agent.jsonc` is missing, the plugin does nothing.
+- If `.opencode/ssh-agent.jsonc` is missing, the plugin does nothing, even when
+  it is registered globally.
 
 ## 4. Manage mounts
 
@@ -289,16 +336,23 @@ cd /root/my-project
 ssh-remote-agent init --remote gpu:/home/user/my-project
 ```
 
-Add the opencode plugin.
+Register the opencode plugin globally once, or add it to this project's
+`opencode.jsonc`.
 
 ```jsonc
 {
+  "$schema": "https://opencode.ai/config.json",
   "plugin": ["ssh-remote-agent/plugin"]
 }
 ```
 
 Then run opencode as usual. File edits go through the SSHFS mount, and test or
 build commands run remotely over SSH.
+
+For Kimaki, register the local mount path as the project and start new sessions
+from that path. For example, local `/root/my-project` can mount remote
+`gpu:/home/user/my-project`, and Kimaki should use `/root/my-project` as the
+project directory.
 
 ## Return to local mode
 
