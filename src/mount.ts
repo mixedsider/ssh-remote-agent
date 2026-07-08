@@ -24,7 +24,6 @@ const SSHFS_OPTIONS = [
   "ServerAliveCountMax=3",
   "ConnectTimeout=10",
   "BatchMode=yes",
-  "nonempty",
 ] as const;
 
 /**
