@@ -28,7 +28,7 @@ function expectExport(
 describe("package contract", () => {
   test("publishes the renamed package identity", () => {
     expect(packageJson.name).toBe("ssh-remote-agent");
-    expect(packageJson.version).toBe("0.2.2");
+    expect(packageJson.version).toBe("0.2.3");
   });
 
   test("published entrypoints match source entrypoints", () => {
