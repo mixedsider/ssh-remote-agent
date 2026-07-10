@@ -58,9 +58,11 @@ Remote machine:
 
 ## Installation
 
-For normal use, install the standalone binary from the latest GitHub Release.
-It is a single executable file, so the target machine does not need a git
-checkout or a local TypeScript build.
+For normal use, install the standalone binary from the public GitHub Releases
+page: https://github.com/mixedsider/ssh-agent/releases
+
+Each release publishes a single executable file, so the target machine does not
+need a git checkout, npm/Bun package install, or local TypeScript build.
 
 ```bash
 curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent \
@@ -78,23 +80,26 @@ curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-rem
 sha256sum -c ssh-remote-agent.sha256
 ```
 
-Release maintainers can create that single-file binary with Bun:
+Development and release maintenance happens from the `main` branch. If you need
+to work on the source instead of installing the release binary, clone the public
+repository and build it locally:
+
+```bash
+git clone https://github.com/mixedsider/ssh-agent.git
+cd ssh-agent
+git switch main
+bun install
+bun run build
+```
+
+After build, the CLI entrypoint is generated at `dist/cli.js`. To create the
+standalone release binary from a checkout, run:
 
 ```bash
 bun run build:standalone
 ```
 
-The generated file is `dist/ssh-remote-agent`.
-
-For a development checkout, install dependencies and build the package.
-
-```bash
-bun install
-bun run build
-```
-
-After build, the CLI entrypoint is generated at `dist/cli.js`. When installed as
-a package, the command name is `ssh-remote-agent`.
+The generated release artifact is `dist/ssh-remote-agent`.
 
 To run the CLI directly from a development checkout:
 
@@ -251,8 +256,9 @@ Add the plugin to the global opencode config:
 ~/.config/opencode/opencode.json
 ```
 
-If `ssh-remote-agent` is installed as a package that opencode can resolve, use
-the package plugin spec:
+For normal release installs, use the standalone binary for the CLI. opencode
+plugin loading still needs a JavaScript module path, so use the package plugin
+spec only when `ssh-remote-agent` is available to opencode as a built package:
 
 ```jsonc
 {
@@ -261,8 +267,8 @@ the package plugin spec:
 }
 ```
 
-If you installed only the standalone release binary, opencode still needs a
-plugin module path. Use a built checkout and register the plugin by file URL:
+If you installed only the standalone release binary, use a built checkout from
+the public repository and register the plugin by file URL:
 
 ```jsonc
 {

@@ -54,9 +54,12 @@ bash command    -> SSH command ----> build, test, git, scripts
 
 ## 설치
 
-일반 사용자는 최신 GitHub Release의 standalone binary를 설치하는 방식을 권장합니다.
-이 파일은 하나의 실행 파일이므로 사용하는 컴퓨터에서 git repo를 clone하거나
-TypeScript build를 직접 실행할 필요가 없습니다.
+일반 사용자는 public GitHub Releases 페이지에서 standalone binary를 설치하는 방식을
+권장합니다: https://github.com/mixedsider/ssh-agent/releases
+
+각 release는 하나의 실행 파일을 제공합니다. 따라서 사용하는 컴퓨터에서 git repo를
+clone하거나, npm/Bun package install 또는 TypeScript build를 직접 실행할 필요가
+없습니다.
 
 ```bash
 curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-remote-agent \
@@ -74,23 +77,25 @@ curl -L https://github.com/mixedsider/ssh-agent/releases/latest/download/ssh-rem
 sha256sum -c ssh-remote-agent.sha256
 ```
 
-release 관리자는 Bun으로 이 단일 실행 파일을 만들 수 있습니다.
+개발과 release 관리는 `main` branch 기준으로 진행됩니다. release binary를 설치하는
+대신 source를 수정하거나 직접 build해야 한다면 public repo를 clone해서 build합니다.
+
+```bash
+git clone https://github.com/mixedsider/ssh-agent.git
+cd ssh-agent
+git switch main
+bun install
+bun run build
+```
+
+build 후 CLI는 `dist/cli.js`로 생성됩니다. checkout에서 standalone release binary를
+만들려면 다음을 실행합니다.
 
 ```bash
 bun run build:standalone
 ```
 
-생성되는 파일은 `dist/ssh-remote-agent`입니다.
-
-개발 중인 checkout에서 실행하려면 의존성을 설치하고 build합니다.
-
-```bash
-bun install
-bun run build
-```
-
-build 후 CLI는 `dist/cli.js`로 생성됩니다. 패키지로 설치되어 있다면 명령 이름은
-`ssh-remote-agent`입니다.
+생성되는 release artifact는 `dist/ssh-remote-agent`입니다.
 
 개발 checkout에서 바로 실행해야 한다면 다음처럼 Bun으로 CLI를 실행할 수 있습니다.
 
@@ -245,8 +250,9 @@ opencode 전역 설정 파일에 플러그인을 추가합니다.
 ~/.config/opencode/opencode.json
 ```
 
-`ssh-remote-agent`가 opencode에서 resolve 가능한 package로 설치되어 있다면 package
-plugin spec을 사용합니다.
+일반 release 설치에서는 standalone binary를 CLI로 사용합니다. opencode plugin loading은
+여전히 JavaScript module path가 필요하므로, `ssh-remote-agent`가 opencode에서 resolve
+가능한 built package로 준비되어 있을 때만 package plugin spec을 사용합니다.
 
 ```jsonc
 {
@@ -255,8 +261,8 @@ plugin spec을 사용합니다.
 }
 ```
 
-GitHub Release의 standalone binary만 설치했다면, opencode가 import할 plugin module은
-별도로 필요합니다. 이 경우 build된 checkout의 plugin 파일을 file URL로 등록합니다.
+GitHub Release의 standalone binary만 설치했다면, public repo에서 build한 checkout의
+plugin 파일을 file URL로 등록합니다.
 
 ```jsonc
 {
