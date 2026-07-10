@@ -98,4 +98,3 @@ describe("initProject", () => {
     rmSync(join(projectRoot, ".opencode"), { recursive: true, force: true });
   });
 });
-

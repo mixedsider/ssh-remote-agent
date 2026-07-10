@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-import { isAbsolute, join, basename } from "node:path";
+import { basename, isAbsolute, join } from "node:path";
 import { PROJECT_CONFIG_RELATIVE_PATH, type RemoteProjectConfig } from "./config.ts";
 import { type Registry, RemoteNotFoundError } from "./registry.ts";
 
@@ -48,7 +48,7 @@ export type InitInput = {
  */
 export function initProject(input: InitInput): RemoteProjectConfig {
   const { key, remotePath: specPath } = parseRemoteSpec(input.spec);
-  
+
   const entry = input.registry[key];
   if (entry === undefined) throw new RemoteNotFoundError(key);
 
@@ -69,7 +69,6 @@ export function initProject(input: InitInput): RemoteProjectConfig {
     remotePath = `/home/${user}/${projectName}`;
   }
 
-
   const config: RemoteProjectConfig = { key, remotePath, mountRoot: input.projectRoot };
   const path = join(input.projectRoot, PROJECT_CONFIG_RELATIVE_PATH);
   const body = `// ssh-remote-agent remote-mode config. Delete this file to return to local mode.\n${JSON.stringify(
@@ -81,4 +80,3 @@ export function initProject(input: InitInput): RemoteProjectConfig {
   writeFileSync(path, body, "utf8");
   return config;
 }
-

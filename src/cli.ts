@@ -5,7 +5,6 @@ import { Command } from "commander";
 import packageJson from "../package.json" with { type: "json" };
 import { initProject } from "./init.ts";
 import { buildSshfsCommand, buildUnmountCommand } from "./mount.ts";
-import { shellQuote } from "./shell-quote.ts";
 import { registryPath } from "./paths.ts";
 import {
   addRemote,
@@ -16,6 +15,7 @@ import {
   resolveSshTarget,
   saveRegistry,
 } from "./registry.ts";
+import { shellQuote } from "./shell-quote.ts";
 import { checkSshConnectivity, type SshConnectivityInput } from "./ssh-connectivity.ts";
 
 type RemoteAddOptions = {
@@ -104,7 +104,6 @@ function mountForConfig(
     }),
   );
 }
-
 
 export function buildCli(deps: CliDependencies = defaultDependencies): Command {
   const program = new Command();
